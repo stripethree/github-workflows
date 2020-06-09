@@ -1,0 +1,22 @@
+# This workflow creates a "nightly build" or "release candidate"
+# branch outside normal working hours, based on Central Time
+
+on:
+  schedule:
+    - cron: "45 4 * * *"
+
+jobs:
+  nightly-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: "master"
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      - id: todays-date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - run: |
+          git checkout -b RC/${{ steps.todays-date.outputs.date }}
+          git push --set-upstream origin RC/${{ steps.todays-date.outputs.date }}

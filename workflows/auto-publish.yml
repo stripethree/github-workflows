@@ -1,0 +1,29 @@
+# This workflow increments the patch version number of a package,
+# tags the new version, and publishes it to the GitHub Package Registry
+# every 8 hours
+
+on:
+  schedule:
+    - cron: "5 */8 * * *"
+
+jobs:
+  tag-and-publish-to-gpr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: "master"
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Tag and Publish"
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+          registry-url: "https://npm.pkg.github.com"
+      - run: npm version patch
+      - run: |
+          git push
+          git push --tags
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
