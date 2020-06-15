@@ -9,7 +9,7 @@ jobs:
   package-cleanup:
     runs-on: ubuntu-latest
     steps:
-      - uses: stripethree/gpr-janitor@v1
+      - uses: stripethree/gpr-janitor@v2
         with:
           dry-run: false
           keep-versions: 6
