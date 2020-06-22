@@ -18,7 +18,7 @@ jobs:
           ruby-version: "2.6.x"
       - name: build
         env:
-          BUNDLER_VERSION: "2.4.1"
+          BUNDLER_VERSION: "2.1.4"
         run: |
           gem install bundler
           bundle install
