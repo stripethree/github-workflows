@@ -1,0 +1,16 @@
+# Assumes that the repository is configured so that head
+# branches are deleted when their associated PRs are closed
+
+name: Clean up deployed branches in GCP
+on: [delete]
+
+jobs:
+  build:
+    name: Clean up deployed branches in GCP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: "276.0.0"
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - run: gsutil rm -rf gs://${{ secrets.GCP_BUCKET_NAME }}/${{ github.event.ref }}
