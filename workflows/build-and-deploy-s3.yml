@@ -1,0 +1,40 @@
+# Originally used as a way to deploy a static website as a preview
+# before landing it on a branch deployed to a custom domain by 
+# GitHub pages. This version builds the a site using Jekyll templates 
+
+name: Build and deploy to S3
+on:
+  push:
+    branches-ignore: "gh-pages"
+
+jobs:
+  build:
+    name: Build and deploy to S3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: "2.6.x"
+      - name: build
+        env:
+          BUNDLER_VERSION: "2.4.1"
+        run: |
+          gem install bundler
+          bundle install
+          bundle exec jekyll build
+          bundle exec htmlproofer ./_site \
+            --allow-hash-href \
+            --check-favicon  \
+            --check-html \
+            --disable-external
+      - name: deploy
+        run: |
+          aws s3 cp \
+            --recursive \
+            --region ${{ secrets.AWS_REGION }} \
+            _site \
+            s3://${{ secrets.AWS_S3_BUCKET_NAME }}/${GITHUB_REF:11}/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
