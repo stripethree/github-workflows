@@ -1,0 +1,21 @@
+# Originally used as a way to deploy a static website as a preview
+# before landing it on a branch deployed to a custom domain by 
+# GitHub pages 
+
+name: Deploy to GCP
+
+on:
+  push:
+    branches-ignore: "gh-pages"
+
+jobs:
+  build:
+    name: Deploy to GCP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: "276.0.0"
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - run: gsutil cp -r '*' gs://${{ secrets.GCP_BUCKET_NAME }}/${GITHUB_REF:11}/
