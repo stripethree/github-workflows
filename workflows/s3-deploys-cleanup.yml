@@ -1,0 +1,20 @@
+# Assumes that the repository is configured so that head
+# branches are deleted when their associated PRs are closed
+
+name: Clean up deployed branches in S3
+on: [delete]
+
+jobs:
+  build:
+    name: Clean up deployed branches in S3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up deployed branches in S3
+        run: |
+          aws s3 rm \
+            --recursive \
+            --region ${{ secrets.AWS_REGION }} \
+            s3://${{ secrets.AWS_S3_BUCKET_NAME }}/${{ github.event.ref }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
