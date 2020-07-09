@@ -26,8 +26,8 @@ jobs:
           ref: "master"
       - name: Configure git user name and email
         run: |
-          git config --local user.email "github@kazoohr.com"
-          git config --local user.name "KazooHR GitHub Workflows"
+          git config --local user.email "github@jeffisrael.com"
+          git config --local user.name "GitHub Workflows"
       - name: Check if RC branch already exists
         id: branch-check
         run: |
