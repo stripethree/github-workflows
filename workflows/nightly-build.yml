@@ -5,18 +5,40 @@ on:
   schedule:
     - cron: "45 4 * * *"
 
+name: Create a release candidate branch
+
+on:
+  schedule:
+    - cron: "45 4 * * 5" # Every Friday at 4:45 am Central
+
+  workflow_dispatch:
+
 jobs:
-  nightly-build:
+  create-release-candidate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Get branch name
+        id: get-branch-name
+        run: echo "::set-output name=branch-name::RC-$(date +'%Y-%m-%d')"
+      - name: Checkout 'master'
+        uses: actions/checkout@v2
         with:
           ref: "master"
-      - run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-      - id: todays-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      - run: |
-          git checkout -b RC/${{ steps.todays-date.outputs.date }}
-          git push --set-upstream origin RC/${{ steps.todays-date.outputs.date }}
+      - name: Configure git user name and email
+        run: |
+          git config --local user.email "github@kazoohr.com"
+          git config --local user.name "KazooHR GitHub Workflows"
+      - name: Check if RC branch already exists
+        id: branch-check
+        run: |
+          if [ -z "$(git ls-remote --heads origin ${{ steps.get-branch-name.outputs.branch-name }})" ]; then
+            echo "::set-output name=create-branch::yes"
+          fi
+      - name: Create RC branch
+        run: |
+          git checkout -b ${{ steps.get-branch-name.outputs.branch-name }}
+          git push --set-upstream origin \
+            ${{ steps.get-branch-name.outputs.branch-name }}
+          git tag ${{ steps.get-branch-name.outputs.branch-name }}-001
+          git push --tags
+        if: steps.branch-check.outputs.create-branch == 'yes'
