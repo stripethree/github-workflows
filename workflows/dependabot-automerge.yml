@@ -1,0 +1,26 @@
+name: Dependabot Automerge
+
+# https://stefanzweifel.io/posts/2021/04/28/auto-merge-dependabot-pull-requests
+
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - 'Branch Build Validation'
+
+  workflow_dispatch:
+
+jobs:
+  merge-me:
+    name: Automerge patch updates
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Automerge PR with patch updates to dependencies
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        uses: ridedott/merge-me-action@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.DEPENDABOT_AUTOMERGE_TOKEN }}
+          PRESET: DEPENDABOT_PATCH
