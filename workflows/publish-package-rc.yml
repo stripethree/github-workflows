@@ -1,0 +1,42 @@
+name: Continuous Build & Deploy (main)
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build-and-deploy:
+    name: Build application
+    if: github.event.commits[0].author.name != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      - name: Package and publish
+        run: |
+          git config --local user.email "email@domain.com"
+          git config --local user.name "GitHub Actions"
+          npm version prerelease --preid rc
+          git push
+          git push --tags
+          npm pack
+          npm publish --tag $(npm pkg get version)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GPR_AUTH_TOKEN }}

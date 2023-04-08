@@ -4,6 +4,8 @@ name: Dependabot Automerge
 
 on:
   workflow_run:
+    branches:
+      - 'dependabot/**'
     types:
       - completed
     workflows:

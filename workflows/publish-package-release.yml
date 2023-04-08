@@ -1,0 +1,31 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v[0-9].[0-9]+.[0-9]+'
+
+jobs:
+  build-and-deploy:
+    name: Build application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      - name: Package and publish
+        run: |
+          npm pack
+          npm publish
