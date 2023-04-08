@@ -1,0 +1,58 @@
+name: Continuous Build & Deploy for a Create React App to S3
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build-and-deploy:
+    name: Build application
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - env-suffix: 'development'
+            aws-region: 'aws-region'
+            s3-bucket-name: 's3-bucket-name'
+            cloudfront-id: 'cloudfront-id'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Create an optimized build
+        run: |
+          export $(cat .env-${{ matrix.env-suffix }} | xargs)
+          npm run build
+
+      - name: Update S3 bucket
+        run: |
+          aws s3 sync \
+            --region ${{ matrix.aws-region }} \
+            build \
+            s3://${{ matrix.s3-bucket-name }}/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Clear Cloudfront cache
+        run: |
+          aws cloudfront create-invalidation \
+          --distribution-id ${{ matrix.cloudfront-id }} \
+          --region ${{ matrix.aws-region }} \
+          --paths "/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
